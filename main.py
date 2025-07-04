@@ -7,11 +7,8 @@ from debug.logger import DebugLogger
 from nws.alerts import DEFAULT_ALERT_PROPERTIES, get_active_alerts
 from menu.windows import WindowsMenu
 from menu.help import HelpMenu
-from zoneinfo import ZoneInfo
-from datetime import datetime
-from widgets.clock import RealtimeClockWidget
 from threading import Thread
-from widgets.debug import DebugLog, DebugLogWindow
+from widgets.debug import DebugLog
 import sys
 import os
 
@@ -21,13 +18,13 @@ class AlertDashboard(ctk.CTk):
     def __init__(self):
         super().__init__()
         
-        self.geometry(f"2560x1440+0+0")  # app window size
+        self.geometry('2560x1440+0+0')  # app window size
         self.state('zoomed')  # maximized by default (doesn't seem to work????)
         self.title('WarningNav')
         self.iconbitmap('warningnav.ico')
         
-        self.option_add("*Text.Font", "Helvetica 14")
-        self.option_add("*Menu.Font", "Helvetica 14")
+        self.option_add('*Text.Font', 'Helvetica 14')
+        self.option_add('*Menu.Font', 'Helvetica 14')
         
         ######################################### general map widget settings ##########################################
         
@@ -39,13 +36,13 @@ class AlertDashboard(ctk.CTk):
             self.map_widget = tkmap.TkinterMapView(self, width=2560, height=1440, corner_radius=0, max_zoom=1)
             
         self.map_widget.place(relx=0.5, rely=0.5, anchor=ctk.CENTER)  # center map inside of window
-        self.map_widget.set_tile_server("https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}&s=Ga")  # default google maps tiles
+        self.map_widget.set_tile_server('https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}&s=Ga')  # default google maps tiles
         self.map_widget.fit_bounding_box((49.3457868, -124.7844079), (24.7433195, -66.9513812))  # CONUS
         self.map_widget.max_zoom = 12  # prevents zooming in too far where there are no offline tiles
         self.map_widget.min_zoom = 6  # prevents zooming out beyond CONUS coverage
         
-        self.bind("<Configure>", lambda event: self.on_resize(event))  # forces the map to stay centered in the window
-        self.map_widget.bind("<Configure>")  # overwrite default map behavior for window resizing
+        self.bind('<Configure>', lambda event: self.on_resize(event))  # forces the map to stay centered in the window
+        self.map_widget.bind('<Configure>')  # overwrite default map behavior for window resizing
         self.map_widget.pack_propagate(False)
         
         #################################################### menubar ###################################################
@@ -53,18 +50,16 @@ class AlertDashboard(ctk.CTk):
         menubar = tk.Menu(self)
         self.config(menu=menubar)
         
-        menubar.add_cascade(label='Windows', menu=WindowsMenu())
+        menubar.add_cascade(label='Windows', menu=WindowsMenu(self))
         
         menubar.add_cascade(label='Help', menu=HelpMenu(self))
         self.create_debug_log(multithreading=True)
         
         # system settings
         ctk.deactivate_automatic_dpi_awareness()
-        ctk.set_appearance_mode("system")
+        ctk.set_appearance_mode('system')
         ctk.set_widget_scaling(1)
         ctk.set_window_scaling(1)
-        
-        # self.display_active_alerts(multithreading=True)
         
         self.thread = Thread(target=self.display_active_alerts)
         self.thread.start()
@@ -99,8 +94,8 @@ class AlertDashboard(ctk.CTk):
         """
         def _main():
             self.debug_log = DebugLog(self)
-            self.debug_logger_out = DebugLogger(self.debug_log, "stdout")
-            self.debug_logger_err = DebugLogger(self.debug_log, "stderr")
+            self.debug_logger_out = DebugLogger(self.debug_log, 'stdout')
+            self.debug_logger_err = DebugLogger(self.debug_log, 'stderr')
             sys.stdout = self.debug_logger_out
             sys.stderr = self.debug_logger_err
         
@@ -130,6 +125,7 @@ class AlertDashboard(ctk.CTk):
 
     def draw_alert_polygons(self):
         self.alert_polygons = []
+        sys.stdout.write('Drawing polygons')
         for alert_type in list(DEFAULT_ALERT_PROPERTIES.keys())[::-1]:
             self.alert_polygons.extend([self.map_widget.set_polygon(
                 alert.geometry['coordinates'],
@@ -140,12 +136,13 @@ class AlertDashboard(ctk.CTk):
                 data=alert,
                 command=lambda p: self.alert_popup(p))
                 for alert in self.alerts if alert.geometry is not None and alert.alert_type == alert_type])
-        sys.stdout.write(f"Created {len(self.alert_polygons)} polygons")
+        sys.stdout.write(f'Created {len(self.alert_polygons)} polygons')
 
     def destroy_polygons(self):
         """
         Remove all warning polygons.
         """
+        sys.stdout.write('Destroying polygons')
         if hasattr(self, 'alert_polygons'):
             [polygon.delete() for polygon in self.alert_polygons]
             del self.alert_polygons
@@ -169,17 +166,3 @@ class AlertDashboard(ctk.CTk):
         
 
 AlertDashboard()
-
-
-# showinfo(title=polygon.data.alert_type, message=polygon.data.description)
-
-
-# def left_click_event(coordinates_tuple):
-#     return coordinates_tuple
-#
-#
-
-#
-
-#
-# self.mainloop()

@@ -51,7 +51,7 @@ class AlertData(object):
         self.description = description
     
     @staticmethod
-    def _convert_geom_coords(geometry):
+    def _convert_geom_coords(geometry: dict | None) -> dict | None:
         """
         This method does two things:
             1) Rounds all coordinates to three decimal places (required for tkintermapview)

@@ -2,12 +2,12 @@ import tkinter as tk
 
 
 class WindowsMenu(tk.Menu):
-    
-    def __init__(self):
+    """
+    Menu that gives options for showing different windows.
+    """
+    def __init__(self, widget):
         """
-        menubar: Parent menubar.
+        widget: main.AlertDashboard instance
         """
-        super().__init__()
-        
-        self.config(tearoff=False)
+        super().__init__(master=widget, tearoff=False)
         self.add_command(label="Show Warnings Window")

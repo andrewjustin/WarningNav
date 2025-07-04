@@ -1,30 +1,32 @@
 import tkinter as tk
-from tkinter.scrolledtext import ScrolledText
+from debug.menu import FileMenu
 
 
 class DebugLogWindow(tk.Toplevel):
     
     def __init__(self, widget):
         """
-        widget: Parent tkinter widget.
+        widget: main.AlertDashboard instance
         """
-        super().__init__(widget)
+        super().__init__(master=widget)
         self.withdraw()
+        self.iconbitmap('warningnav.ico')  # app icon
         self.title('Debug Log')
         self.attributes('-topmost', True)  # forces debug window to stay on top
+        self._add_menubar()
     
-    def add_menubar(self):
+    def _add_menubar(self) -> None:
         """
-        Adds an option to clear the debug log
+        Internal method that creates a menubar.
         """
         menubar = tk.Menu(self)
-        menubar.add()
-        
-    def show(self):
-        self.deiconify()
+        self.config(menu=menubar)
+        menubar.add_cascade(label="File", menu=FileMenu(self))
     
-    # redefine destroy method so the window will be hidden rather than destroyed
-    def destroy(self):
+    def destroy(self) -> None:
+        """
+        When closing the window, prevent the instance from being 'destroyed'.
+        """
         self.withdraw()
 
 
@@ -32,7 +34,7 @@ class DebugLog(tk.Text):
     
     def __init__(self, widget):
         """
-        widget: Parent tkinter widget.
+        widget: main.AlertDashboard instance
         """
         super().__init__(master=DebugLogWindow(widget))
         self.pack(side="top", fill="both", expand=True)

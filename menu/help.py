@@ -2,15 +2,13 @@ import tkinter as tk
 
 
 class HelpMenu(tk.Menu):
-    
-    def __init__(self, root):
-        super().__init__(root)
-        self.root = root
-        self.config(tearoff=False)
-        self.add_command(label="Show Debug Log", command=lambda: self._show_debug_log())
-    
-    def _show_debug_log(self):
+    """
+    Help menu on the main dashboard's menubar.
+    """
+    def __init__(self, widget):
         """
-        Displays a debug log.
+        widget: main.AlertDashboard instance
         """
-        self.root.debug_log.master.show()
+        super().__init__(master=widget, tearoff=False)
+        self.widget = widget
+        self.add_command(label="Show Debug Log", command=lambda: self.widget.debug_log.master.deiconify())
