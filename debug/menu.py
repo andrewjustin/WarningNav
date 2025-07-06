@@ -3,7 +3,7 @@ import sys
 import tkinter as tk
 
 
-class FileMenu(tk.Menu):
+class DebugFileMenu(tk.Menu):
     """
     Menu for the debug log window.
     """
@@ -23,6 +23,7 @@ class FileMenu(tk.Menu):
         log.config(state='normal')
         log.delete("1.0", tk.END)
         log.config(state='disabled')
+        sys.stdout.write('Cleared debug log')
     
     def _save_log(self) -> None:
         """

@@ -4,7 +4,8 @@ import tkinter as tk
 from tkinter.scrolledtext import ScrolledText
 import tkintermapview as tkmap
 from debug.logger import DebugLogger
-from nws.alerts import DEFAULT_ALERT_PROPERTIES, get_active_alerts
+from nws.alerts import DEFAULT_ALERT_PROPERTIES, Alerts
+from menu.file import FileMenu
 from menu.windows import WindowsMenu
 from menu.help import HelpMenu
 from threading import Thread
@@ -50,8 +51,8 @@ class AlertDashboard(ctk.CTk):
         menubar = tk.Menu(self)
         self.config(menu=menubar)
         
+        menubar.add_cascade(label='File', menu=FileMenu(self))
         menubar.add_cascade(label='Windows', menu=WindowsMenu(self))
-        
         menubar.add_cascade(label='Help', menu=HelpMenu(self))
         self.create_debug_log(multithreading=True)
         
@@ -61,7 +62,8 @@ class AlertDashboard(ctk.CTk):
         ctk.set_widget_scaling(1)
         ctk.set_window_scaling(1)
         
-        self.thread = Thread(target=self.display_active_alerts)
+        self.alerts = Alerts()
+        self.thread = Thread(target=self._display_active_alerts)
         self.thread.start()
         
         self.mainloop()
@@ -105,64 +107,68 @@ class AlertDashboard(ctk.CTk):
         else:
             _main()
     
-    def display_active_alerts(self):
+    def _display_active_alerts(self, update_freq: int = 60):
         """
         Complete workflow for updating active alerts.
+        
+        update_freq: update frequency in seconds.
         """
         while True:
-            self.get_active_alerts()
-            self.destroy_polygons()
-            self.draw_alert_polygons()
-            time.sleep(15.)
-        
-    def get_active_alerts(self):
-        """
-        Retrieves all active NWS alerts.
-        """
-        sys.stdout.write('Retrieving alerts from National Weather Service')
-        self.alerts = get_active_alerts()
-        sys.stdout.write(f'{len(self.alerts)} alerts were found')
+            time.sleep(1.0)  # allows warning retrieval information to buffer to debug log
+            self.alerts.update_alerts()
+            self._draw_new_alert_polygons()
+            self._remove_old_alert_polygons()
+            sys.stdout.write(f'Active alert polygons: {len(self._canvas_polygon_list())}')
+            time.sleep(update_freq - 1.0)
 
-    def draw_alert_polygons(self):
-        self.alert_polygons = []
-        sys.stdout.write('Drawing polygons')
+    def _draw_new_alert_polygons(self):
+        sys.stdout.write('Searching for new alerts to draw as polygons')
+        new_alert_polygons = []
         for alert_type in list(DEFAULT_ALERT_PROPERTIES.keys())[::-1]:
-            self.alert_polygons.extend([self.map_widget.set_polygon(
-                alert.geometry['coordinates'],
+            new_alert_polygons.extend([dict(
+                position_list=alert.geometry['coordinates'],
                 fill_color=DEFAULT_ALERT_PROPERTIES[alert.alert_type][1],
                 outline_color=DEFAULT_ALERT_PROPERTIES[alert.alert_type][1],
                 border_width=2,
                 name=alert.alert_type,
-                data=alert,
-                command=lambda p: self.alert_popup(p))
-                for alert in self.alerts if alert.geometry is not None and alert.alert_type == alert_type])
-        sys.stdout.write(f'Created {len(self.alert_polygons)} polygons')
+                data=alert)
+                for alert in self.alerts.alerts_with_geometry
+                if alert.alert_type == alert_type
+                and alert.alert_id in self.alerts.new_alert_ids])
+        
+        for polygon in new_alert_polygons:
+            self.map_widget.set_polygon(command=lambda p: self._alert_popup(p), **polygon)
+        sys.stdout.write(f'Created {len(new_alert_polygons)} new polygons')
 
-    def destroy_polygons(self):
+    def _remove_old_alert_polygons(self):
+        sys.stdout.write('Searching for expired alert polygons')
+        polygons = self._canvas_polygon_list()
+        polygons_to_remove = [p for p in polygons if p.data.alert_id in self.alerts.old_alert_ids]
+        for polygon in polygons_to_remove:
+            polygon.delete()
+        sys.stdout.write(f'Removed {len(polygons_to_remove)} alert polygons')
+    
+    def _canvas_polygon_list(self):
         """
-        Remove all warning polygons.
+        Returns a list of all polygons currently shown on the map.
         """
-        sys.stdout.write('Destroying polygons')
-        if hasattr(self, 'alert_polygons'):
-            [polygon.delete() for polygon in self.alert_polygons]
-            del self.alert_polygons
-        sys.stdout.write('Destroyed all polygons')
+        return self.map_widget.canvas_polygon_list
 
-    def alert_popup(self, polygon):
+    def _alert_popup(self, polygon):
         """
-        Popup that appears when clicking on a warning polygon.
+        Popup that appears when clicking on an alert polygon.
         """
         self.update()  # to get the height and the offset of Tk window
         dialog = tk.Toplevel(self)
+        dialog.iconbitmap('warningnav.ico')
         dialog.title(polygon.data.alert_type)
 
-        # Create a scrolled Text widget (combines Text and Scrollbar)
-        text_widget = ScrolledText(dialog, wrap=tk.WORD)  # Use tk.WORD for word wrapping
+        text_widget = ScrolledText(dialog, wrap=tk.WORD)
         text_widget.insert(tk.END, polygon.data.description)
-        text_widget.config(state=tk.DISABLED)  # Make it read-only
+        text_widget.config(state=tk.DISABLED)
         text_widget.pack(expand=True, fill="both")
         
         sys.stdout.write(f'Displaying alert: {polygon.data.parameters}')
-        
+
 
 AlertDashboard()

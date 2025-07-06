@@ -1,5 +1,5 @@
 import tkinter as tk
-from debug.menu import FileMenu
+from debug.menu import DebugFileMenu
 
 
 class DebugLogWindow(tk.Toplevel):
@@ -21,8 +21,8 @@ class DebugLogWindow(tk.Toplevel):
         """
         menubar = tk.Menu(self)
         self.config(menu=menubar)
-        menubar.add_cascade(label="File", menu=FileMenu(self))
-    
+        menubar.add_cascade(label="File", menu=DebugFileMenu(self))
+
     def destroy(self) -> None:
         """
         When closing the window, prevent the instance from being 'destroyed'.
