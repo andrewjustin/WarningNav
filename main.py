@@ -146,8 +146,8 @@ class AlertDashboard(ctk.CTk):
             _main()
     
     def _map_motion(self, event):
-        frame_width = self.map_widget.winfo_width()
-        frame_height = self.map_widget.winfo_height()
+        # frame_width = self.map_widget.winfo_width()
+        # frame_height = self.map_widget.winfo_height()
         zoom = int(self.map_widget.last_zoom)
         
         # bounds for the tiles (frame must not scroll past these)
