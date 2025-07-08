@@ -1,13 +1,14 @@
 """
 TODO
     * HIGH priority
-        - prevent scrolling off window where tiles do not exist (currently only works for 2560x1440)
         - allow selection of polygons that are on top of each other
         - creating warning list widget
         - allow toggling of offline tiles
         - fix warning popup text (some text is missing and level of detail is not consistent between warnings)
     * MEDIUM priority
         - customizable warning view options (e.g., only show tornado warnings)
+        - SPC convective/fire outlooks
+        - WPC precipitation outlooks
         - only allow a maximum of one warning popup per polygon
         - add user option for warning update frequency
     * LOW priority
@@ -21,8 +22,9 @@ import tkinter as tk
 from tkinter.scrolledtext import ScrolledText
 import tkintermapview as tkmap
 from debug.logger import DebugLogger
-from nws.alerts import DEFAULT_ALERT_PROPERTIES, Alerts
+from noaa.nws.alerts import DEFAULT_ALERT_PROPERTIES, Alerts
 from menu.file import FileMenu
+from menu.outlooks import OutlooksMenu
 from menu.windows import WindowsMenu
 from menu.help import HelpMenu
 from threading import Thread
@@ -71,6 +73,7 @@ class AlertDashboard(ctk.CTk):
         self.config(menu=menubar)
         
         menubar.add_cascade(label='File', menu=FileMenu(self))
+        menubar.add_cascade(label='Outlooks', menu=OutlooksMenu(self))
         menubar.add_cascade(label='Windows', menu=WindowsMenu(self))
         menubar.add_cascade(label='Help', menu=HelpMenu(self))
         self.create_debug_log(multithreading=True)
@@ -146,8 +149,6 @@ class AlertDashboard(ctk.CTk):
             _main()
     
     def _map_motion(self, event):
-        # frame_width = self.map_widget.winfo_width()
-        # frame_height = self.map_widget.winfo_height()
         zoom = int(self.map_widget.last_zoom)
         
         # bounds for the tiles (frame must not scroll past these)
@@ -162,21 +163,21 @@ class AlertDashboard(ctk.CTk):
         if ul_x < left_x:  # if the widget scrolls left of the riles
             new_x = self.center_positions[zoom][0]
             self.map_widget.set_position(y, new_x)
-            sys.stdout.write("Map repositioned due to scrolling left of tiles")
+            # sys.stdout.write("Map repositioned due to scrolling left of tiles")
         elif ul_y < top_y:  # if the widget scrolls above the tiles
             new_y = self.center_positions[zoom][1]
             self.map_widget.set_position(new_y, x)
-            sys.stdout.write("Map repositioned due to scrolling above tiles")
+            # sys.stdout.write("Map repositioned due to scrolling above tiles")
         elif lr_x > right_x:  # if the widget scrolls right of the tiles
             new_x = self.center_positions[zoom][2]
             self.map_widget.set_position(y, new_x)
-            sys.stdout.write("Map repositioned due to scrolling right of tiles")
+            # sys.stdout.write("Map repositioned due to scrolling right of tiles")
         elif lr_y > bottom_y:  # if the widget scrolls below the tiles
             new_y = self.center_positions[zoom][3]
             self.map_widget.set_position(new_y, x)
-            sys.stdout.write("Map repositioned due to scrolling below tiles")
+            # sys.stdout.write("Map repositioned due to scrolling below tiles")
 
-    def _display_active_alerts(self, update_freq: int = 60):
+    def _display_active_alerts(self, update_freq: int = 10):
         """
         Complete workflow for updating active alerts.
         
