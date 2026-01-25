@@ -5,9 +5,9 @@ class WindowsMenu(tk.Menu):
     """
     Menu that gives options for showing different windows.
     """
-    def __init__(self, widget):
+    def __init__(self, dashboard):
         """
-        widget: main.AlertDashboard instance
+        dashboard: main.AlertDashboard instance
         """
-        super().__init__(master=widget, tearoff=False)
+        super().__init__(master=dashboard, tearoff=False)
         self.add_command(label="Show Warnings Window")

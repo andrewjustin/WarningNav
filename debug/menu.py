@@ -7,11 +7,13 @@ class DebugFileMenu(tk.Menu):
     """
     Menu for the debug log window.
     """
-    def __init__(self, widget):
+    def __init__(self, debug_log_window):
         """
-        widget: widgets.debug.DebugLogWindow instance
+        debug_log_window: widgets.debug.DebugLogWindow instance
         """
-        super().__init__(master=widget, tearoff=False)
+        super().__init__(master=debug_log_window, tearoff=False)
+
+        self.debug_log_window = debug_log_window
         self.add_command(label="Clear Log", command=self._clear_log)
         self.add_command(label="Save Log", command=self._save_log)
     
@@ -55,4 +57,4 @@ class DebugFileMenu(tk.Menu):
         """
         Return the Tkinter widget containing the debug log.
         """
-        return self.master.children.get('!debuglog')
+        return self.debug_log_window.children.get('!debuglog')

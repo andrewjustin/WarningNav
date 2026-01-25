@@ -5,10 +5,10 @@ class FileMenu(tk.Menu):
     """
     File menu on the main dashboard's menubar.
     """
-    def __init__(self, widget):
+    def __init__(self, dashboard):
         """
-        widget: main.AlertDashboard instance
+        dashboard: main.AlertDashboard instance
         """
-        super().__init__(master=widget, tearoff=False)
-        self.widget = widget
-        self.add_command(label="Exit", command=lambda: self.widget.destroy())
+        super().__init__(master=dashboard, tearoff=False)
+        self.dashboard = dashboard
+        self.add_command(label="Exit", command=lambda: self.dashboard.destroy())

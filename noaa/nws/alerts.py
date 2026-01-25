@@ -12,9 +12,7 @@ DEFAULT_ALERT_PROPERTIES = {
     'Fire Warning': [14, '#A0522D'],
     'Special Marine Warning': [21, '#FFA500'],
     'Dust Storm Warning': [28, '#FFE4C4'],
-    'High Wind Warning': [30, '#DAA520'],
     'Flood Warning': [39, '#00FF00'],
-    'Flood Advisory': [64, '#00FF7F'],
     'Flood Watch': [89, '#2E8B57'],
     'Special Weather Statement': [101, '#FFE4B5'],
     'Marine Weather Statement': [102, '#FFDAB9'],
@@ -99,7 +97,7 @@ class Alerts(object):
             headline=alert['properties']['headline'],
             description=alert['properties']['description']), content['features']))
         
-        sys.stdout.write(f'Found {len(alerts)} active alerts.')
+        # sys.stdout.write(f'Found {len(alerts)} active alerts.')
         
         self.alerts_with_geometry = [alert for alert in alerts if alert.geometry is not None]
         self.alerts_without_geometry = [alert for alert in alerts if alert.geometry is None]
