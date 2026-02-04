@@ -18,72 +18,91 @@ TODO
         - create config files for app settings and user-defined markers
         - figure out realtime clock placement
 """
-
-import time
-import tkinter as tk
-import customtkinter as ctk
-import tkintermapview as tkmap
-import sys
-import os
-import random
-from tkinter.scrolledtext import ScrolledText
 from debug.logger import DebugLogger
-from noaa.nws.alerts import DEFAULT_ALERT_PROPERTIES, Alerts
 from menu.file import FileMenu
 from menu.outlooks import OutlooksMenu
 from menu.windows import WindowsMenu
 from menu.help import HelpMenu
+from noaa.nws.alerts import DEFAULT_ALERT_PROPERTIES, NWSAlerts
 from threading import Thread
-from widgets.debug import DebugLog
+from tkinter.scrolledtext import ScrolledText
 from tkvideo import tkvideo
+from widgets.debug import DebugLog
+import customtkinter as ctk
+import os
+import pyautogui
+import random
+import sys
+import time
+import tkinter as tk
+import tkintermapview as tkmap
 
 
 class AlertDashboard(ctk.CTk):
     
     def __init__(self):
         super().__init__()
-        
-        self.geometry('2560x1440+0+0')  # app window size
-        self.state('zoomed')  # maximized by default
+
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
+
+        self.geometry(f'{screen_width}x{screen_height}+0+0')  # app window size
+        # self.update_idletasks()
         self.title('WarningNav')
         self.iconbitmap('warningnav.ico')
-        
+
         self.option_add('*Text.Font', 'Helvetica 14')
         self.option_add('*Menu.Font', 'Helvetica 14')
         
-        self.bind("<B1-Motion>", self._map_motion)
-        
+        self.bind('<B1-Motion>', self._map_motion)
+
+        self.debug_log = DebugLog(self)  # initialize the debug log
+
+        ### reroute all stdout and stderr printouts to the debug log ###
+        self.debug_logger_out = DebugLogger(self.debug_log, 'stdout')
+        self.debug_logger_err = DebugLogger(self.debug_log, 'stderr')
+        sys.stdout = self.debug_logger_out
+        sys.stderr = self.debug_logger_err
+
         ######################################### general map widget settings ##########################################
-        
+
         # load offline tiles if available
         if os.path.isfile('offline_tiles.db'):
-            self.map_widget = tkmap.TkinterMapView(self, width=2560, height=1440, corner_radius=0, max_zoom=12,
-                                                   use_database_only=True, database_path='offline_tiles.db',
+            self.map_widget = tkmap.TkinterMapView(self,
+                                                   width=screen_width,
+                                                   height=screen_height,
+                                                   corner_radius=0,
+                                                   max_zoom=12,
+                                                   use_database_only=True,
+                                                   database_path='offline_tiles.db',
                                                    bg_color='transparent')
         else:
-            self.map_widget = tkmap.TkinterMapView(self, width=2560, height=1440, corner_radius=0, max_zoom=1)
-            
-        self.map_widget.place(relx=0.5, rely=0.5, anchor=ctk.CENTER)  # center map inside of window
+            self.map_widget = tkmap.TkinterMapView(self,
+                                                   width=screen_width,
+                                                   height=screen_height,
+                                                   corner_radius=0)
+
+        self.map_widget.place(relx=0.5, rely=0.5, anchor='center', bordermode='inside')  # center map inside of window
         self.map_widget.set_tile_server('https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}&s=Ga')  # default google maps tiles
-        self.map_widget.fit_bounding_box((49.3457868, -124.7844079), (24.7433195, -66.9513812))  # CONUS
+        self.map_widget.fit_bounding_box((49.3457868, -124.7844079),
+                                         (24.7433195, -66.9513812))  # CONUS
         self.map_widget.max_zoom = 12  # prevents zooming in too far where there are no offline tiles
-        self.map_widget.min_zoom = 7  # prevents zooming out beyond CONUS coverage
+        self.map_widget.min_zoom = 6  # prevents zooming out beyond CONUS coverage
         self._define_map_bounds()
         
         self.bind('<Configure>', lambda event: self.on_resize(event))  # forces the map to stay centered in the window
         self.map_widget.bind('<Configure>')  # overwrite default map behavior for window resizing
         self.map_widget.pack_propagate(False)
-        
+
         #################################################### menubar ###################################################
         
         menubar = tk.Menu(self)
         self.config(menu=menubar)
         
         menubar.add_cascade(label='File', menu=FileMenu(self))
-        menubar.add_cascade(label='Outlooks', menu=OutlooksMenu(self))
+        menubar.add_cascade(label='GIS', menu=OutlooksMenu(self))
         menubar.add_cascade(label='Windows', menu=WindowsMenu(self))
         menubar.add_cascade(label='Help', menu=HelpMenu(self))
-        self.create_debug_log(multithreading=True)
         
         ################################################################################################################
         
@@ -94,9 +113,14 @@ class AlertDashboard(ctk.CTk):
         ctk.set_window_scaling(1)
         
         # NWS alerts
-        self.alerts = Alerts()
-        self._run_automatic_alert_updates(multithreading=True)
-        
+        self.alerts = NWSAlerts()
+
+        ### enable automatic alert updates and run the updates on a separate thread ###
+        automatic_alerts_thread = Thread(target=self._run_automatic_alert_updates,
+                                         name='auto-alerts-thread',
+                                         daemon=True)
+        automatic_alerts_thread.start()
+
         self.mainloop()
     
     def _define_map_bounds(self):
@@ -140,31 +164,17 @@ class AlertDashboard(ctk.CTk):
         tolerance_y: int
             Maximum difference in the heights of the frame and window (pixels).
         """
-        if event.width - self.map_widget.winfo_width() > tolerance_x or \
-           event.height - self.map_widget.winfo_height() > tolerance_y:
+        window_width = event.width
+        window_height = event.height
+        map_width = self.map_widget.winfo_width()
+        map_height = self.map_widget.winfo_height()
+        sys.stdout.write(f'Window size: {window_width}x{window_height}')
+
+        if abs(window_width - map_width) > tolerance_x or abs(window_height - map_height) > tolerance_y:
+            sys.stdout.write('Resizing map')
             self.map_widget.config(width=event.width, height=event.height)
-            self.map_widget.pack()
-        
-    def create_debug_log(self, multithreading: bool = False) -> None:
-        """
-        Route all stdout and stderr writes to the debug logger window.
-        
-        multithreading: bool (default = False)
-            Run the debug window on its own thread.
-        """
-        def _main():
-            self.debug_log = DebugLog(self)
-            self.debug_logger_out = DebugLogger(self.debug_log, 'stdout')
-            self.debug_logger_err = DebugLogger(self.debug_log, 'stderr')
-            sys.stdout = self.debug_logger_out
-            sys.stderr = self.debug_logger_err
-        
-        if multithreading:
-            thread = Thread(target=_main)
-            thread.start()
-        else:
-            _main()
-    
+            self.map_widget.pack(anchor='nw')
+
     def draw_alert_polygon(self,
                            coordinates: list,
                            fill_color: str,
@@ -188,19 +198,32 @@ class AlertDashboard(ctk.CTk):
         data: Any
             Optional data to include with the polygon.
         """
-        self.map_widget.set_polygon(command=lambda p: self.alert_popup(p),
-                                    position_list=coordinates,
-                                    fill_color=fill_color,
-                                    outline_color=border_color,
-                                    border_width=border_width,
-                                    name=name,
-                                    data=data)
+        polygon = tkmap.map_widget.CanvasPolygon(map_widget=self.map_widget,
+                                                 position_list=coordinates,
+                                                 command=lambda p: self.alert_popup(p),
+                                                 fill_color=fill_color,
+                                                 outline_color=border_color,
+                                                 border_width=border_width,
+                                                 name=name,
+                                                 data=data)
+
+        polygon.draw()
+
+        self.map_widget.canvas_polygon_list.append(polygon)
+
+    def destroy_all_outlook_polygons(self):
+        """
+        dashboard: main.AlertDashboard instance
+        """
+        outlook_polygons = [p for p in self.canvas_polygon_list() if 'Risk' in p.name]
+        for polygon in outlook_polygons:
+            polygon.delete()
+        sys.stdout.write(f'Removed {len(outlook_polygons)} outlook polygons')
     
     def alert_popup(self, polygon: tkmap.map_widget.CanvasPolygon) -> None:
         """
         Internal method that displays a popup when clicking on an alert polygon.
         """
-        self.update()  # to get the height and the offset of Tk window
         dialog = tk.Toplevel(self)
         dialog.iconbitmap('warningnav.ico')
         dialog.title(polygon.data.alert_type)
@@ -208,7 +231,7 @@ class AlertDashboard(ctk.CTk):
         text_widget = ScrolledText(dialog, wrap=tk.WORD)
         text_widget.insert(tk.END, polygon.data.description)
         text_widget.config(state=tk.DISABLED)
-        text_widget.pack(expand=True, fill="both")
+        text_widget.pack(expand=True, fill='both')
         
         sys.stdout.write(f'Displaying alert: {polygon.data.parameters}')
     
@@ -223,7 +246,7 @@ class AlertDashboard(ctk.CTk):
             required for binding this method to the map motion.
         """
         # current map zoom
-        zoom = int(self.map_widget.last_zoom)
+        zoom = int(self.map_widget.zoom)
         
         # bounds for the tiles (frame must not scroll past these)
         left_x, top_y, right_x, bottom_y = self.map_bounds[zoom]
@@ -251,8 +274,7 @@ class AlertDashboard(ctk.CTk):
     def _run_automatic_alert_updates(self,
                                      update_freq: int = 10,
                                      max_updates: int = 8640,
-                                     buffer_time_sec: float = 1.0,
-                                     multithreading: bool = False
+                                     buffer_time_sec: float = 1.0
                                      ) -> None:
         """
         Complete workflow for updating active alerts.
@@ -267,30 +289,21 @@ class AlertDashboard(ctk.CTk):
         buffer_time_sec: float (default = 1.0)
             Number of seconds to allow for debug information to buffer to the debug log. This only affects the first
             update to NWS alerts right after the app is opened.
-        multithreading: bool (default = False)
-            Perform the automatic alert update process on its own thread.
         
         Notes
         -----
         With the default parameters, the automatic warning updates will stop after the app has been continuously open
         for about 24 hours.
         """
-        def _main():
-            update_count = 0
-            while update_count < max_updates:
-                time.sleep(buffer_time_sec)  # allows warning retrieval information to buffer to debug log
-                self.alerts.update_alerts()
-                self._draw_new_alert_polygons()
-                self._remove_old_alert_polygons()
-                sys.stdout.write(f'Active alert polygons: {len(self.canvas_polygon_list())}')
-                time.sleep(update_freq - buffer_time_sec)
-                update_count += 1
-
-        if multithreading:
-            thread = Thread(target=_main)
-            thread.start()
-        else:
-            _main()
+        update_count = 0
+        while update_count < max_updates:
+            time.sleep(buffer_time_sec)  # allows warning retrieval information to buffer to debug log
+            self.alerts.update_alerts()
+            self._draw_new_alert_polygons()
+            self._remove_old_alert_polygons()
+            sys.stdout.write(f'Active alert polygons: {len(self.canvas_polygon_list())}')
+            time.sleep(update_freq - buffer_time_sec)
+            update_count += 1
 
     def _draw_new_alert_polygons(self) -> None:
         """
@@ -336,16 +349,18 @@ def start_application():
 
 if __name__ == '__main__':
     
-    loading_screen_root = tk.Tk()
-    loading_screen_root.title('WarningNav')
+    # loading_screen_root = tk.Tk()
+    # loading_screen_root.title('WarningNav')
+    #
+    # label = tk.Label(loading_screen_root)
+    # label.pack(fill='both')
+    #
+    # player = tkvideo('loading_720p.mp4', label, loop=1, size=(1280, 720))
+    # player.play()
+    #
+    # loading_screen_root.state('zoomed')
+    # loading_screen_root.iconbitmap('warningnav.ico')
+    # loading_screen_root.after(random.randint(4600, 9200), start_application)
+    # loading_screen_root.mainloop()
 
-    label = tk.Label(loading_screen_root)
-    label.pack(fill='both')
-
-    player = tkvideo('loading_720p.mp4', label, loop=1, size=(1280, 720))
-    player.play()
-    
-    loading_screen_root.state('zoomed')
-    loading_screen_root.iconbitmap('warningnav.ico')
-    loading_screen_root.after(random.randint(4600, 9200), start_application)
-    loading_screen_root.mainloop()
+    AlertDashboard()

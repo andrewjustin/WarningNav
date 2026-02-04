@@ -1,17 +1,18 @@
+import sys
 import tkinter as tk
 from debug.menu import DebugFileMenu
 
 
-class DebugLogWindow(tk.Toplevel):
+class DebugLogWidget(tk.Toplevel):
     
-    def __init__(self, widget):
+    def __init__(self, dashboard):
         """
-        widget: main.AlertDashboard instance
+        dashboard: main.AlertDashboard instance
         """
-        super().__init__(master=widget)
+        super().__init__(master=dashboard)
         self.withdraw()
-        self.iconbitmap('warningnav.ico')  # app icon
-        self.title('Debug Log')
+        self.title("Debug Log")
+        self.iconbitmap("warningnav.ico")
         self.attributes('-topmost', True)  # forces debug window to stay on top
         self._add_menubar()
     
@@ -32,11 +33,11 @@ class DebugLogWindow(tk.Toplevel):
 
 class DebugLog(tk.Text):
     
-    def __init__(self, widget):
+    def __init__(self, dashboard):
         """
-        widget: main.AlertDashboard instance
+        dashboard: main.AlertDashboard instance
         """
-        super().__init__(master=DebugLogWindow(widget))
+        super().__init__(master=DebugLogWidget(dashboard))
         self.pack(side="top", fill="both", expand=True)
         self.tag_configure("stdout", foreground="#000000")  # black text for standard info
         self.tag_configure("stderr", foreground="#ff0000")  # red text for error info

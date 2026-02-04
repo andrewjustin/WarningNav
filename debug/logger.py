@@ -2,7 +2,7 @@ import tkinter as tk
 from datetime import datetime
 
 
-class DebugLogger(object):
+class DebugLogger:
     """
     Custom object that sends debug information to a DebugLog instance.
     """

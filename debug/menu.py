@@ -9,7 +9,7 @@ class DebugFileMenu(tk.Menu):
     """
     def __init__(self, debug_log_window):
         """
-        debug_log_window: widgets.debug.DebugLogWindow instance
+        debug_log_window: widgets.debug.DebugLogWidget instance
         """
         super().__init__(master=debug_log_window, tearoff=False)
 

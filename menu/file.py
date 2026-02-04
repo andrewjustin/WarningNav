@@ -1,4 +1,5 @@
 import tkinter as tk
+from widgets.settings import SettingsWidget
 
 
 class FileMenu(tk.Menu):
@@ -12,3 +13,4 @@ class FileMenu(tk.Menu):
         super().__init__(master=dashboard, tearoff=False)
         self.dashboard = dashboard
         self.add_command(label="Exit", command=lambda: self.dashboard.destroy())
+        self.add_command(label="Settings", command=lambda: SettingsWidget(self.dashboard))

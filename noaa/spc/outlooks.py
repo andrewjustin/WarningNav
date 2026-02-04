@@ -1,101 +1,87 @@
-import sys
+from datetime import datetime
+from threading import Thread
+from typing import Callable
+import json
 import requests
-from lxml import etree
-import tkinter as tk
+import sys
+import tkintermapview as tkmap
 
 
-class ConvectiveOutlooks:
-    
-    def __init__(self, dashboard):
+class SPCOutlookPolygon(tkmap.map_widget.CanvasPolygon):
+
+    def __init__(self,
+                 map_widget: tkmap.TkinterMapView,
+                 coordinates: list[list[float]],
+                 label: str,
+                 name: str,
+                 valid_time: str,
+                 expire_time: str,
+                 issue_time: str,
+                 stroke: str,
+                 fill: str,
+                 border_width: int = 5,
+                 command: Callable = None) -> None:
+
+        data = {'label': label,
+                'valid_time': datetime.strptime(valid_time, '%Y%m%d%H%M'),
+                'expire_time': datetime.strptime(expire_time, '%Y%m%d%H%M'),
+                'issue_time': datetime.strptime(issue_time, '%Y%m%d%H%M')}
+
+        super().__init__(map_widget,
+                         coordinates,
+                         outline_color=stroke,
+                         fill_color=fill,
+                         border_width=border_width,
+                         command=command,
+                         name=name,
+                         data=data)
+
+
+class SPCOutlook:
+
+    def __init__(self, dashboard, url: str) -> None:
+
         self.dashboard = dashboard
+        self.url = url
+        self.outlook_polygons = []
 
-    def show_outlooks(self, date, otlk_day, otlk_type, otlk_time):
-        
-        self.destroy_convective_outlook_polygons()
-        
-        self.outlooks = {
-            'Categorical': [],
-            'Tornado': [],
-            'Hail': [],
-            'Wind': []
-        }
-        
-        self._get_outlooks(date, otlk_day, otlk_time)
-        self._plot_outlook_polygons(self.outlooks[otlk_type])
-    
-    def _get_outlooks(self, date, otlk_day, otlk_time):
-        mo, dy, yr = date.split('/')
-        yr = int('20' + yr)
-        mo = int(mo)
-        dy = int(dy)
-        url = f'https://www.spc.noaa.gov/products/outlook/archive/{yr}/day{otlk_day}otlk_{yr}{mo:02d}{dy:02d}_{otlk_time}.kml'
-        sys.stdout.write(f"Retrieving SPC outlooks from url: {url}")
-        response = requests.get(url)
-        
-        ns = {"kml": "http://earth.google.com/kml/2.2"}
-        tree = etree.fromstring(response.content)
-        placemarks = tree.findall('.//kml:Placemark', namespaces=ns)
-        
-        for pm in placemarks:
-            
-            risk_info = {
-                'name': pm.xpath(".//kml:SimpleData[@name='LABEL2']", namespaces=ns)[0].text,
-                'stroke': pm.xpath(".//kml:SimpleData[@name='stroke']", namespaces=ns)[0].text,
-                'fill': pm.xpath(".//kml:SimpleData[@name='fill']", namespaces=ns)[0].text,
-                'polygons': self._extract_polygons(pm.xpath(".//kml:coordinates", namespaces=ns))
-            }
-            
-            if risk_info['name'] is None:
-                continue
-            elif 'Tornado' in risk_info['name']:
-                self.outlooks['Tornado'].append(risk_info)
-            elif 'Hail' in risk_info['name']:
-                self.outlooks['Hail'].append(risk_info)
-            elif 'Wind' in risk_info['name']:
-                self.outlooks['Wind'].append(risk_info)
-            elif 'Any Severe Risk' not in risk_info['name']:
-                self.outlooks['Categorical'].append(risk_info)
-            else:
-                pass
-            
-    def _plot_outlook_polygons(self, outlooks):
-        sys.stdout.write('Drawing SPC outlook polygons')
-        
-        for outlook in outlooks:
-            name = outlook['name']
-            outline_color = outlook['stroke']
-            border_width = 1 if 'Significant' in name else 3
-            polygons = outlook['polygons']
-            
-            for polygon in polygons:
-                p = self.dashboard.map_widget.set_polygon(
-                    position_list=polygon,
-                    fill_color=None,
-                    border_width=border_width,
-                    outline_color=outline_color,
-                    data={'type': 'Convective Outlook',
-                          'name': name})
-                self.dashboard.map_widget.canvas.itemconfig(p.canvas_polygon, state=tk.DISABLED)
-    
-    def destroy_convective_outlook_polygons(self):
-        sys.stdout.write('Destroying convective outlook polygons')
-        polygons_with_dict_data = [p for p in self.dashboard.canvas_polygon_list() if isinstance(p.data, dict)]
-        conv_outlook_polygons = [p for p in polygons_with_dict_data if p.data['type'] == 'Convective Outlook']
-        for polygon in conv_outlook_polygons:
-            polygon.delete()
-        sys.stdout.write(f'Destroyed {len(conv_outlook_polygons)} outlook polygons')
-    
-    @staticmethod
-    def _extract_polygons(elements):
-        return [[tuple(map(float, coords.split(',')[::-1])) for coords in el.text.split(' ')] for el in elements]
-        
+        self.dashboard.destroy_all_outlook_polygons()
 
-def destroy_all_outlook_polygons(dashboard):
-    """
-    dashboard: main.AlertDashboard instance
-    """
-    polygons_with_dict_data = [p for p in dashboard.canvas_polygon_list() if isinstance(p.data, dict)]
-    outlook_polygons = [p for p in polygons_with_dict_data if ['Outlook'] in p.data['type']]
-    for polygon in outlook_polygons:
-        polygon.delete()
-    sys.stdout.write(f'Removed {len(outlook_polygons)} outlook polygons')
+        outlook_thread = Thread(target=self.main, name='outlook-thread', daemon=True)
+        outlook_thread.start()
+
+    def main(self):
+
+        sys.stdout.write(f'Retrieving outlooks from {self.url}')
+        content = requests.get(self.url).content
+        features = json.loads(content)['features']
+
+        for feature in features:
+
+            label = feature['properties']['LABEL']
+            name = feature['properties']['LABEL2']
+            valid_time = feature['properties']['VALID']
+            expire_time = feature['properties']['EXPIRE']
+            issue_time = feature['properties']['ISSUE']
+            stroke = feature['properties']['stroke']
+            fill = None
+
+            # extract coordinates and convert from [lon, lat] to [lat, lon]
+            for coord_list in feature['geometry']['coordinates']:
+                coordinates = [[float(coords[1]), float(coords[0])] for coords in coord_list[0] if len(coords) == 2]
+
+                self.outlook_polygons.append(SPCOutlookPolygon(self.dashboard.map_widget,
+                                                               coordinates,
+                                                               label,
+                                                               name,
+                                                               valid_time,
+                                                               expire_time,
+                                                               issue_time,
+                                                               stroke,
+                                                               fill))
+
+        sys.stdout.write(f'Drawing {len(self.outlook_polygons)} outlook polygons.')
+        for p in self.outlook_polygons:
+            self.dashboard.map_widget.canvas_polygon_list.append(p)
+            self.dashboard.map_widget.canvas.itemconfig(p.canvas_polygon, state='disabled')
+        sys.stdout.write(f'Successfully drew {len(self.outlook_polygons)} outlook polygons.')

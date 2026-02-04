@@ -1,5 +1,6 @@
-import sys
 from noaa.nws.alerts import DEFAULT_ALERT_PROPERTIES
+from noaa.spc.outlooks import SPCOutlook
+import sys
 import tkinter as tk
 
 
@@ -50,6 +51,51 @@ class HelpMenu(tk.Menu):
         draw_test_polygon_menu.add_command(label='Marine Weather Statement',
                                            command=lambda: self._draw_test_polygon('Marine Weather Statement'))
 
+        draw_test_polygon_menu.add_separator()
+
+        draw_test_polygon_menu.add_command(label='Day 1 Convective Outlook (Categorical)',
+                                           command=lambda: SPCOutlook(self.dashboard,
+                                        'https://www.spc.noaa.gov/products/outlook/archive/2025/day1otlk_20250315_1630_cat.lyr.geojson'))
+        draw_test_polygon_menu.add_command(label='Day 1 Convective Outlook (Tornado)',
+                                           command=lambda: SPCOutlook(self.dashboard,
+                                        'https://www.spc.noaa.gov/products/outlook/archive/2025/day1otlk_20250315_1630_torn.lyr.geojson'))
+        draw_test_polygon_menu.add_command(label='Day 1 Convective Outlook (Hail)',
+                                           command=lambda: SPCOutlook(self.dashboard,
+                                        'https://www.spc.noaa.gov/products/outlook/archive/2025/day1otlk_20250315_1630_hail.lyr.geojson'))
+        draw_test_polygon_menu.add_command(label='Day 1 Convective Outlook (Wind)',
+                                           command=lambda: SPCOutlook(self.dashboard,
+                                        'https://www.spc.noaa.gov/products/outlook/archive/2025/day1otlk_20250315_1630_wind.lyr.geojson'))
+        draw_test_polygon_menu.add_command(label='Day 2 Convective Outlook (Categorical)',
+                                           command=lambda: SPCOutlook(self.dashboard,
+                                        'https://www.spc.noaa.gov/products/outlook/archive/2025/day2otlk_20250314_1730_cat.lyr.geojson'))
+        draw_test_polygon_menu.add_command(label='Day 2 Convective Outlook (Tornado)',
+                                           command=lambda: SPCOutlook(self.dashboard,
+                                        'https://www.spc.noaa.gov/products/outlook/archive/2025/day2otlk_20250314_1730_torn.lyr.geojson'))
+        draw_test_polygon_menu.add_command(label='Day 2 Convective Outlook (Hail)',
+                                           command=lambda: SPCOutlook(self.dashboard,
+                                        'https://www.spc.noaa.gov/products/outlook/archive/2025/day2otlk_20250314_1730_hail.lyr.geojson'))
+        draw_test_polygon_menu.add_command(label='Day 2 Convective Outlook (Wind)',
+                                           command=lambda: SPCOutlook(self.dashboard,
+                                        'https://www.spc.noaa.gov/products/outlook/archive/2025/day2otlk_20250314_1730_wind.lyr.geojson'))
+        draw_test_polygon_menu.add_command(label='Day 3 Convective Outlook (Categorical)',
+                                           command=lambda: SPCOutlook(self.dashboard,
+                                        'https://www.spc.noaa.gov/products/outlook/archive/2025/day3otlk_20250313_1930_cat.lyr.geojson'))
+        draw_test_polygon_menu.add_command(label='Day 3 Convective Outlook (Probabilistic)',
+                                           command=lambda: SPCOutlook(self.dashboard,
+                                        'https://www.spc.noaa.gov/products/outlook/archive/2025/day3otlk_20250313_1930_prob.lyr.geojson'))
+        draw_test_polygon_menu.add_command(label='Day 4 Convective Outlook (Probabilistic)',
+                                           command=lambda: SPCOutlook(self.dashboard,
+                                        'https://www.spc.noaa.gov/products/exper/day4-8/archive/2025/day4prob_20250312.lyr.geojson'))
+        draw_test_polygon_menu.add_command(label='Day 5 Convective Outlook (Probabilistic)',
+                                           command=lambda: SPCOutlook(self.dashboard,
+                                        'https://www.spc.noaa.gov/products/exper/day4-8/archive/2025/day5prob_20250311.lyr.geojson'))
+        draw_test_polygon_menu.add_command(label='Day 6 Convective Outlook (Probabilistic)',
+                                           command=lambda: SPCOutlook(self.dashboard,
+                                        'https://www.spc.noaa.gov/products/exper/day4-8/archive/2025/day6prob_20250310.lyr.geojson'))
+        draw_test_polygon_menu.add_command(label='Day 7 Convective Outlook (Probabilistic)',
+                                           command=lambda: SPCOutlook(self.dashboard,
+                                        'https://www.spc.noaa.gov/products/exper/day4-8/archive/2025/day7prob_20250309.lyr.geojson'))
+
         self.debug_menu.add_cascade(label="Draw Test Polygon", menu=draw_test_polygon_menu)
 
     def _draw_test_polygon(self,
@@ -60,7 +106,6 @@ class HelpMenu(tk.Menu):
         alert_type: str
             Name of the alert type.
         """
-        sys.stdout.write(alert_type)
         test_polygon_data = {
             'coordinates': [[35.52, -97.8], [35.42, -97.8], [35.32, -97.4], [35.62, -97.4]],
             'fill_color': DEFAULT_ALERT_PROPERTIES[alert_type][1],

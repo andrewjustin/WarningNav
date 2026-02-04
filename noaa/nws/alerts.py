@@ -1,6 +1,6 @@
-import requests
 import json
 import numpy as np
+import requests
 import sys
 
 
@@ -19,7 +19,7 @@ DEFAULT_ALERT_PROPERTIES = {
 }
 
 
-class AlertData(object):
+class NWSAlertData:
     """
     Object containing information about active NWS alerts.
     """
@@ -62,12 +62,13 @@ class AlertData(object):
             geometry['coordinates'] = [np.round(coords, 3)[::-1] for coords in geometry['coordinates'][0]]
         
         return geometry
-    
 
-class Alerts(object):
+class NWSAlerts:
     
     def __init__(self):
         self.alerts = []
+        self.alerts_with_geometry = None
+        self.alerts_without_geometry = None
     
     def update_alerts(self):
         """
@@ -83,7 +84,7 @@ class Alerts(object):
         response = requests.get('https://api.weather.gov/alerts/active')
         content = json.loads(response.content)
         
-        alerts = list(map(lambda alert: AlertData(
+        alerts = list(map(lambda alert: NWSAlertData(
             alert_id=alert['id'],
             alert_type=alert['properties']['event'],
             alert_code=alert['properties']['eventCode']['NationalWeatherService'][0],
@@ -96,9 +97,7 @@ class Alerts(object):
             sender=alert['properties']['senderName'],
             headline=alert['properties']['headline'],
             description=alert['properties']['description']), content['features']))
-        
-        # sys.stdout.write(f'Found {len(alerts)} active alerts.')
-        
+
         self.alerts_with_geometry = [alert for alert in alerts if alert.geometry is not None]
         self.alerts_without_geometry = [alert for alert in alerts if alert.geometry is None]
     
@@ -120,4 +119,3 @@ class Alerts(object):
         
         sys.stdout.write(f'{len(self.new_alert_ids)} new alert(s) found, '
                          f'{len(self.old_alert_ids)} alert(s) are no longer active')
-    
