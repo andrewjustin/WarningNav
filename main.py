@@ -20,7 +20,7 @@ TODO
 """
 from debug.logger import DebugLogger
 from menu.file import FileMenu
-from menu.outlooks import OutlooksMenu
+from menu.gis import GISMenu
 from menu.windows import WindowsMenu
 from menu.help import HelpMenu
 from noaa.nws.alerts import DEFAULT_ALERT_PROPERTIES, NWSAlerts
@@ -100,7 +100,7 @@ class AlertDashboard(ctk.CTk):
         self.config(menu=menubar)
         
         menubar.add_cascade(label='File', menu=FileMenu(self))
-        menubar.add_cascade(label='GIS', menu=OutlooksMenu(self))
+        menubar.add_cascade(label='GIS', menu=GISMenu(self))
         menubar.add_cascade(label='Windows', menu=WindowsMenu(self))
         menubar.add_cascade(label='Help', menu=HelpMenu(self))
         

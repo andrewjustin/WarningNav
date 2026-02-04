@@ -3,9 +3,9 @@ import sys
 import tkinter as tk
 
 
-class OutlooksMenu(tk.Menu):
+class GISMenu(tk.Menu):
     """
-    Outlook menu on the main dashboard's menubar.
+    GIS menu on the main dashboard's menubar.
     """
     def __init__(self, dashboard):
         """
