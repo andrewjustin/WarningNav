@@ -51,8 +51,8 @@ class AlertDashboard(ctk.CTk):
         self.title('WarningNav')
         self.iconbitmap('warningnav.ico')
 
-        self.option_add('*Text.Font', 'Helvetica 14')
-        self.option_add('*Menu.Font', 'Helvetica 14')
+        self.option_add('*Text.Font', 'Helvetica 11')
+        self.option_add('*Menu.Font', 'Helvetica 11')
         
         self.bind('<B1-Motion>', self._map_motion)
 
@@ -127,18 +127,10 @@ class AlertDashboard(ctk.CTk):
         """
         Internal method that defines the bounds of the map based on the current zoom.
         """
-        # {zoom: [left (pixels), top (pixels), right (pixels), bottom (pixels)]}
-        self.map_bounds = {6: [9, 21, 22, 29],
-                           7: [19, 43, 42, 56],
-                           8: [39, 87, 82, 111],
-                           9: [78, 175, 162, 221],
-                           10: [157, 350, 323, 441],
-                           11: [314, 700, 645, 880],
-                           12: [628, 1400, 1288, 1759]}
         
         # {zoom: [left (x), top (y), right (x), bottom (y)]
-        self.center_positions = {6: [-101.25, 41.75, -84.371, 30.255],
-                                 7: [-112.504, 45.790, -75.937, 28.666],
+        self.center_positions = {6: [-101.25, 41.688, -84.371, 31.355],
+                                 7: [-112.504, 45.42, -75.937, 28.666],
                                  8: [-118.129, 47.377, -71.714, 26.617],
                                  9: [-121.641, 48.157, -69.608, 25.575],
                                  10: [-123.047, 48.774, -68.200, 25.052],
@@ -164,6 +156,10 @@ class AlertDashboard(ctk.CTk):
         tolerance_y: int
             Maximum difference in the heights of the frame and window (pixels).
         """
+        if self.map_widget.zoom < self.map_widget.min_zoom:
+            self.map_widget.set_zoom(self.map_widget.min_zoom)
+            self.map_widget.update()
+        
         window_width = event.width
         window_height = event.height
         map_width = self.map_widget.winfo_width()
@@ -247,30 +243,24 @@ class AlertDashboard(ctk.CTk):
         """
         # current map zoom
         zoom = int(self.map_widget.zoom)
+        if zoom < self.map_widget.min_zoom:
+            self.map_widget.set_zoom(self.map_widget.min_zoom)
         
-        # bounds for the tiles (frame must not scroll past these)
-        left_x, top_y, right_x, bottom_y = self.map_bounds[zoom]
-        
-        # tile positions
-        ul_x, ul_y = self.map_widget.upper_left_tile_pos
-        lr_x, lr_y = self.map_widget.lower_right_tile_pos
-        
-        # center position of the widget
         y, x = self.map_widget.get_position()
         
-        if ul_x < left_x:  # if the widget scrolls left of the tiles
-            new_x = self.center_positions[zoom][0]
-            self.map_widget.set_position(y, new_x)
-        elif ul_y < top_y:  # if the widget scrolls above the tiles
-            new_y = self.center_positions[zoom][1]
-            self.map_widget.set_position(new_y, x)
-        elif lr_x > right_x:  # if the widget scrolls right of the tiles
-            new_x = self.center_positions[zoom][2]
-            self.map_widget.set_position(y, new_x)
-        elif lr_y > bottom_y:  # if the widget scrolls below the tiles
-            new_y = self.center_positions[zoom][3]
-            self.map_widget.set_position(new_y, x)
-
+        left, top, right, bottom = self.center_positions[zoom]
+        sys.stdout.write(f'BEFORE: [zoom={zoom}, {self.map_widget.get_position()}')
+        
+        if x < left:
+            self.map_widget.set_position(y, left)
+        elif x > right:
+            self.map_widget.set_position(y, right)
+        
+        if y > top:
+            self.map_widget.set_position(top, x)
+        elif y < bottom:
+            self.map_widget.set_position(bottom, x)
+        
     def _run_automatic_alert_updates(self,
                                      update_freq: int = 10,
                                      max_updates: int = 8640,

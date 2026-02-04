@@ -2,6 +2,7 @@ from noaa.spc.outlooks import SPCOutlook
 import sys
 import tkinter as tk
 
+
 class OutlooksMenu(tk.Menu):
     """
     Outlook menu on the main dashboard's menubar.
@@ -70,7 +71,6 @@ class OutlooksMenu(tk.Menu):
                                     'https://www.spc.noaa.gov/products/exper/day4-8/day8prob.nolyr.geojson'))
 
         self.add_cascade(label='(SPC) Convective Outlook', menu=convective_menu)
-
 
     def _fire_outlook_cascade(self):
 
@@ -160,7 +160,6 @@ class OutlooksMenu(tk.Menu):
                               command=lambda: SPCOutlook(self.dashboard,
                               'https://www.spc.noaa.gov/products/fire_wx/day8fw_windrhprob.lyr.geojson'))
         self.add_cascade(label='(SPC) FireWX Outlook', menu=fire_menu)
-
 
     @staticmethod
     def _null_function():

@@ -45,8 +45,6 @@ class SPCOutlook:
         self.url = url
         self.outlook_polygons = []
 
-        self.dashboard.destroy_all_outlook_polygons()
-
         outlook_thread = Thread(target=self.main, name='outlook-thread', daemon=True)
         outlook_thread.start()
 
@@ -55,7 +53,9 @@ class SPCOutlook:
         sys.stdout.write(f'Retrieving outlooks from {self.url}')
         content = requests.get(self.url).content
         features = json.loads(content)['features']
-
+        
+        self.dashboard.destroy_all_outlook_polygons()
+        
         for feature in features:
 
             label = feature['properties']['LABEL']
@@ -70,18 +70,17 @@ class SPCOutlook:
             for coord_list in feature['geometry']['coordinates']:
                 coordinates = [[float(coords[1]), float(coords[0])] for coords in coord_list[0] if len(coords) == 2]
 
-                self.outlook_polygons.append(SPCOutlookPolygon(self.dashboard.map_widget,
-                                                               coordinates,
-                                                               label,
-                                                               name,
-                                                               valid_time,
-                                                               expire_time,
-                                                               issue_time,
-                                                               stroke,
-                                                               fill))
-
-        sys.stdout.write(f'Drawing {len(self.outlook_polygons)} outlook polygons.')
-        for p in self.outlook_polygons:
-            self.dashboard.map_widget.canvas_polygon_list.append(p)
-            self.dashboard.map_widget.canvas.itemconfig(p.canvas_polygon, state='disabled')
-        sys.stdout.write(f'Successfully drew {len(self.outlook_polygons)} outlook polygons.')
+                p = SPCOutlookPolygon(self.dashboard.map_widget,
+                                      coordinates,
+                                      label,
+                                      name,
+                                      valid_time,
+                                      expire_time,
+                                      issue_time,
+                                      stroke,
+                                      fill)
+                sys.stdout.write(f'Drawing {label} outlook polygon.')
+                
+                p.draw()
+                self.dashboard.map_widget.canvas_polygon_list.append(p)
+                self.dashboard.map_widget.canvas.itemconfig(p.canvas_polygon, state='disabled')
