@@ -164,7 +164,6 @@ class AlertDashboard(ctk.CTk):
         window_height = event.height
         map_width = self.map_widget.winfo_width()
         map_height = self.map_widget.winfo_height()
-        sys.stdout.write(f'Window size: {window_width}x{window_height}')
 
         if abs(window_width - map_width) > tolerance_x or abs(window_height - map_height) > tolerance_y:
             sys.stdout.write('Resizing map')
@@ -249,7 +248,6 @@ class AlertDashboard(ctk.CTk):
         y, x = self.map_widget.get_position()
         
         left, top, right, bottom = self.center_positions[zoom]
-        sys.stdout.write(f'BEFORE: [zoom={zoom}, {self.map_widget.get_position()}')
         
         if x < left:
             self.map_widget.set_position(y, left)

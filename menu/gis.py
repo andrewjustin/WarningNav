@@ -89,76 +89,76 @@ class GISMenu(tk.Menu):
                               'https://www.spc.noaa.gov/products/fire_wx/day2fw_windrh.lyr.geojson'))
         fire_menu.add_command(label='Day 3: Dry Thunderstorms (Categorical)',
                               command=lambda: SPCOutlook(self.dashboard,
-                              'https://www.spc.noaa.gov/products/fire_wx/day3fw_drytcat.lyr.geojson'))
+                              'https://www.spc.noaa.gov/products/exper/fire_wx/day3fw_drytcat.lyr.geojson'))
         fire_menu.add_command(label='Day 3: Dry Thunderstorms (Probabilistic)',
                               command=lambda: SPCOutlook(self.dashboard,
-                              'https://www.spc.noaa.gov/products/fire_wx/day3fw_drytprob.lyr.geojson'))
+                              'https://www.spc.noaa.gov/products/exper/fire_wx/day3fw_drytprob.lyr.geojson'))
         fire_menu.add_command(label='Day 3: Wind/LowRH (Categorical)',
                               command=lambda: SPCOutlook(self.dashboard,
-                              'https://www.spc.noaa.gov/products/fire_wx/day3fw_windrhcat.lyr.geojson'))
+                              'https://www.spc.noaa.gov/products/exper/fire_wx/day3fw_windrhcat.lyr.geojson'))
         fire_menu.add_command(label='Day 3: Wind/LowRH (Probabilistic)',
                               command=lambda: SPCOutlook(self.dashboard,
-                              'https://www.spc.noaa.gov/products/fire_wx/day3fw_windrhprob.lyr.geojson'))
+                              'https://www.spc.noaa.gov/products/exper/fire_wx/day3fw_windrhprob.lyr.geojson'))
         fire_menu.add_command(label='Day 4: Dry Thunderstorms (Categorical)',
                               command=lambda: SPCOutlook(self.dashboard,
-                              'https://www.spc.noaa.gov/products/fire_wx/day4fw_drytcat.lyr.geojson'))
+                              'https://www.spc.noaa.gov/products/exper/fire_wx/day4fw_drytcat.lyr.geojson'))
         fire_menu.add_command(label='Day 4: Dry Thunderstorms (Probabilistic)',
                               command=lambda: SPCOutlook(self.dashboard,
-                              'https://www.spc.noaa.gov/products/fire_wx/day4fw_drytprob.lyr.geojson'))
+                              'https://www.spc.noaa.gov/products/exper/fire_wx/day4fw_drytprob.lyr.geojson'))
         fire_menu.add_command(label='Day 4: Wind/LowRH (Categorical)',
                               command=lambda: SPCOutlook(self.dashboard,
-                              'https://www.spc.noaa.gov/products/fire_wx/day4fw_windrhcat.lyr.geojson'))
+                              'https://www.spc.noaa.gov/products/exper/fire_wx/day4fw_windrhcat.lyr.geojson'))
         fire_menu.add_command(label='Day 4: Wind/LowRH (Probabilistic)',
                               command=lambda: SPCOutlook(self.dashboard,
-                              'https://www.spc.noaa.gov/products/fire_wx/day4fw_windrhprob.lyr.geojson'))
+                              'https://www.spc.noaa.gov/products/exper/fire_wx/day4fw_windrhprob.lyr.geojson'))
         fire_menu.add_command(label='Day 5: Dry Thunderstorms (Categorical)',
                               command=lambda: SPCOutlook(self.dashboard,
-                              'https://www.spc.noaa.gov/products/fire_wx/day5fw_drytcat.lyr.geojson'))
+                              'https://www.spc.noaa.gov/products/exper/fire_wx/day5fw_drytcat.lyr.geojson'))
         fire_menu.add_command(label='Day 5: Dry Thunderstorms (Probabilistic)',
                               command=lambda: SPCOutlook(self.dashboard,
-                              'https://www.spc.noaa.gov/products/fire_wx/day5fw_drytprob.lyr.geojson'))
+                              'https://www.spc.noaa.gov/products/exper/fire_wx/day5fw_drytprob.lyr.geojson'))
         fire_menu.add_command(label='Day 5: Wind/LowRH (Categorical)',
                               command=lambda: SPCOutlook(self.dashboard,
-                              'https://www.spc.noaa.gov/products/fire_wx/day5fw_windrhcat.lyr.geojson'))
+                              'https://www.spc.noaa.gov/products/exper/fire_wx/day5fw_windrhcat.lyr.geojson'))
         fire_menu.add_command(label='Day 5: Wind/LowRH (Probabilistic)',
                               command=lambda: SPCOutlook(self.dashboard,
-                              'https://www.spc.noaa.gov/products/fire_wx/day5fw_windrhprob.lyr.geojson'))
+                              'https://www.spc.noaa.gov/products/exper/fire_wx/day5fw_windrhprob.lyr.geojson'))
         fire_menu.add_command(label='Day 6: Dry Thunderstorms (Categorical)',
                               command=lambda: SPCOutlook(self.dashboard,
-                              'https://www.spc.noaa.gov/products/fire_wx/day6fw_drytcat.lyr.geojson'))
+                              'https://www.spc.noaa.gov/products/exper/fire_wx/day6fw_drytcat.lyr.geojson'))
         fire_menu.add_command(label='Day 6: Dry Thunderstorms (Probabilistic)',
                               command=lambda: SPCOutlook(self.dashboard,
-                              'https://www.spc.noaa.gov/products/fire_wx/day6fw_drytprob.lyr.geojson'))
+                              'https://www.spc.noaa.gov/products/exper/fire_wx/day6fw_drytprob.lyr.geojson'))
         fire_menu.add_command(label='Day 6: Wind/LowRH (Categorical)',
                               command=lambda: SPCOutlook(self.dashboard,
-                              'https://www.spc.noaa.gov/products/fire_wx/day6fw_windrhcat.lyr.geojson'))
+                              'https://www.spc.noaa.gov/products/exper/fire_wx/day6fw_windrhcat.lyr.geojson'))
         fire_menu.add_command(label='Day 6: Wind/LowRH (Probabilistic)',
                               command=lambda: SPCOutlook(self.dashboard,
-                              'https://www.spc.noaa.gov/products/fire_wx/day6fw_windrhprob.lyr.geojson'))
+                              'https://www.spc.noaa.gov/products/exper/fire_wx/day6fw_windrhprob.lyr.geojson'))
         fire_menu.add_command(label='Day 7: Dry Thunderstorms (Categorical)',
                               command=lambda: SPCOutlook(self.dashboard,
-                              'https://www.spc.noaa.gov/products/fire_wx/day7fw_drytcat.lyr.geojson'))
+                              'https://www.spc.noaa.gov/products/exper/fire_wx/day7fw_drytcat.lyr.geojson'))
         fire_menu.add_command(label='Day 7: Dry Thunderstorms (Probabilistic)',
                               command=lambda: SPCOutlook(self.dashboard,
-                              'https://www.spc.noaa.gov/products/fire_wx/day7fw_drytprob.lyr.geojson'))
+                              'https://www.spc.noaa.gov/products/exper/fire_wx/day7fw_drytprob.lyr.geojson'))
         fire_menu.add_command(label='Day 7: Wind/LowRH (Categorical)',
                               command=lambda: SPCOutlook(self.dashboard,
-                              'https://www.spc.noaa.gov/products/fire_wx/day7fw_windrhcat.lyr.geojson'))
+                              'https://www.spc.noaa.gov/products/exper/fire_wx/day7fw_windrhcat.lyr.geojson'))
         fire_menu.add_command(label='Day 7: Wind/LowRH (Probabilistic)',
                               command=lambda: SPCOutlook(self.dashboard,
-                              'https://www.spc.noaa.gov/products/fire_wx/day7fw_windrhprob.lyr.geojson'))
+                              'https://www.spc.noaa.gov/products/exper/fire_wx/day7fw_windrhprob.lyr.geojson'))
         fire_menu.add_command(label='Day 8: Dry Thunderstorms (Categorical)',
                               command=lambda: SPCOutlook(self.dashboard,
-                              'https://www.spc.noaa.gov/products/fire_wx/day8fw_drytcat.lyr.geojson'))
+                              'https://www.spc.noaa.gov/products/exper/fire_wx/day8fw_drytcat.lyr.geojson'))
         fire_menu.add_command(label='Day 8: Dry Thunderstorms (Probabilistic)',
                               command=lambda: SPCOutlook(self.dashboard,
-                              'https://www.spc.noaa.gov/products/fire_wx/day8fw_drytprob.lyr.geojson'))
+                              'https://www.spc.noaa.gov/products/exper/fire_wx/day8fw_drytprob.lyr.geojson'))
         fire_menu.add_command(label='Day 8: Wind/LowRH (Categorical)',
                               command=lambda: SPCOutlook(self.dashboard,
-                              'https://www.spc.noaa.gov/products/fire_wx/day8fw_windrhcat.lyr.geojson'))
+                              'https://www.spc.noaa.gov/products/exper/fire_wx/day8fw_windrhcat.lyr.geojson'))
         fire_menu.add_command(label='Day 8: Wind/LowRH (Probabilistic)',
                               command=lambda: SPCOutlook(self.dashboard,
-                              'https://www.spc.noaa.gov/products/fire_wx/day8fw_windrhprob.lyr.geojson'))
+                              'https://www.spc.noaa.gov/products/exper/fire_wx/day8fw_windrhprob.lyr.geojson'))
         self.add_cascade(label='(SPC) FireWX Outlook', menu=fire_menu)
 
     @staticmethod
