@@ -8,9 +8,7 @@ TODO
         - allow customizable warning polygon colors
     * MEDIUM priority
         - customizable warning view options (e.g., only show tornado warnings)
-        - SPC convective/fire outlooks
-            - change popup appearance
-        - SPC reports and mesoscale discussions
+        - mesoscale discussions
         - WPC precipitation outlooks
         - only allow a maximum of one warning popup per polygon
         - add user option for warning update frequency
@@ -24,6 +22,7 @@ from menu.gis import GISMenu
 from menu.windows import WindowsMenu
 from menu.help import HelpMenu
 from noaa.nws.alerts import DEFAULT_ALERT_PROPERTIES, NWSAlerts
+from noaa.spc.reports import SPCReports
 from threading import Thread
 from tkinter.scrolledtext import ScrolledText
 from tkvideo import tkvideo
@@ -120,6 +119,10 @@ class AlertDashboard(ctk.CTk):
                                          name='auto-alerts-thread',
                                          daemon=True)
         automatic_alerts_thread.start()
+        
+        # SPC storm reports
+        self.spc_reports = SPCReports(self.map_widget)
+        self.spc_reports.start_thread()
 
         self.mainloop()
     

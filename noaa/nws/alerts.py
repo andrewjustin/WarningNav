@@ -19,7 +19,7 @@ DEFAULT_ALERT_PROPERTIES = {
 }
 
 
-class NWSAlertData:
+class NWSAlert:
     """
     Object containing information about active NWS alerts.
     """
@@ -63,6 +63,7 @@ class NWSAlertData:
         
         return geometry
 
+
 class NWSAlerts:
     
     def __init__(self):
@@ -84,7 +85,7 @@ class NWSAlerts:
         response = requests.get('https://api.weather.gov/alerts/active')
         content = json.loads(response.content)
         
-        alerts = list(map(lambda alert: NWSAlertData(
+        alerts = list(map(lambda alert: NWSAlert(
             alert_id=alert['id'],
             alert_type=alert['properties']['event'],
             alert_code=alert['properties']['eventCode']['NationalWeatherService'][0],
