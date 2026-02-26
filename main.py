@@ -21,10 +21,8 @@ from menu.file import FileMenu
 from menu.gis import GISMenu
 from menu.windows import WindowsMenu
 from menu.help import HelpMenu
-from noaa.nws.alerts import DEFAULT_ALERT_PROPERTIES, NWSAlerts
+from noaa.nws.alerts import NWSAlerts
 from noaa.spc.reports import SPCReports
-from threading import Thread
-from tkinter.scrolledtext import ScrolledText
 from tkvideo import tkvideo
 from widgets.debug import DebugLog
 import customtkinter as ctk
@@ -112,13 +110,8 @@ class AlertDashboard(ctk.CTk):
         ctk.set_window_scaling(1)
         
         # NWS alerts
-        self.alerts = NWSAlerts()
-
-        ### enable automatic alert updates and run the updates on a separate thread ###
-        automatic_alerts_thread = Thread(target=self._run_automatic_alert_updates,
-                                         name='auto-alerts-thread',
-                                         daemon=True)
-        automatic_alerts_thread.start()
+        self.alerts = NWSAlerts(self.map_widget)
+        self.alerts.start_thread()
         
         # SPC storm reports
         self.spc_reports = SPCReports(self.map_widget)
@@ -173,42 +166,6 @@ class AlertDashboard(ctk.CTk):
             self.map_widget.config(width=event.width, height=event.height)
             self.map_widget.pack(anchor='nw')
 
-    def draw_alert_polygon(self,
-                           coordinates: list,
-                           fill_color: str,
-                           border_color: str,
-                           border_width: int,
-                           name: str,
-                           data = None):
-        """
-        Draw a single alert polygon.
-        
-        coordinates: list
-            List of (lat, lon) coordinate pairs marking the polygon vertices.
-        fill_color: str
-            Color of the polygon fill (HEX code).
-        border_color: str
-            Color of the polygon border/outline (HEX code).
-        border_width: int
-            Width of the polygon border.
-        name: str
-            Name of the polygon alert type.
-        data: Any
-            Optional data to include with the polygon.
-        """
-        polygon = tkmap.map_widget.CanvasPolygon(map_widget=self.map_widget,
-                                                 position_list=coordinates,
-                                                 command=lambda p: self.alert_popup(p),
-                                                 fill_color=fill_color,
-                                                 outline_color=border_color,
-                                                 border_width=border_width,
-                                                 name=name,
-                                                 data=data)
-
-        polygon.draw()
-
-        self.map_widget.canvas_polygon_list.append(polygon)
-
     def destroy_all_outlook_polygons(self):
         """
         dashboard: main.AlertDashboard instance
@@ -217,21 +174,6 @@ class AlertDashboard(ctk.CTk):
         for polygon in outlook_polygons:
             polygon.delete()
         sys.stdout.write(f'Removed {len(outlook_polygons)} outlook polygons')
-    
-    def alert_popup(self, polygon: tkmap.map_widget.CanvasPolygon) -> None:
-        """
-        Internal method that displays a popup when clicking on an alert polygon.
-        """
-        dialog = tk.Toplevel(self)
-        dialog.iconbitmap('warningnav.ico')
-        dialog.title(polygon.data.alert_type)
-
-        text_widget = ScrolledText(dialog, wrap=tk.WORD)
-        text_widget.insert(tk.END, polygon.data.description)
-        text_widget.config(state=tk.DISABLED)
-        text_widget.pack(expand=True, fill='both')
-        
-        sys.stdout.write(f'Displaying alert: {polygon.data.parameters}')
     
     def _map_motion(self, event: tk.Event) -> None:
         """
@@ -261,69 +203,6 @@ class AlertDashboard(ctk.CTk):
             self.map_widget.set_position(top, x)
         elif y < bottom:
             self.map_widget.set_position(bottom, x)
-        
-    def _run_automatic_alert_updates(self,
-                                     update_freq: int = 10,
-                                     max_updates: int = 8640,
-                                     buffer_time_sec: float = 1.0
-                                     ) -> None:
-        """
-        Complete workflow for updating active alerts.
-        
-        Parameters
-        ----------
-        update_freq: int (default = 10)
-            Alert update frequency in seconds.
-        max_updates: int (default = 8640)
-            Max number of times that the warnings will automatically update before terminating. This parameter is only
-            used to prevent an infinite loop when updating alerts.
-        buffer_time_sec: float (default = 1.0)
-            Number of seconds to allow for debug information to buffer to the debug log. This only affects the first
-            update to NWS alerts right after the app is opened.
-        
-        Notes
-        -----
-        With the default parameters, the automatic warning updates will stop after the app has been continuously open
-        for about 24 hours.
-        """
-        update_count = 0
-        while update_count < max_updates:
-            time.sleep(buffer_time_sec)  # allows warning retrieval information to buffer to debug log
-            self.alerts.update_alerts()
-            self._draw_new_alert_polygons()
-            self._remove_old_alert_polygons()
-            sys.stdout.write(f'Active alert polygons: {len(self.canvas_polygon_list())}')
-            time.sleep(update_freq - buffer_time_sec)
-            update_count += 1
-
-    def _draw_new_alert_polygons(self) -> None:
-        """
-        Draw polygons for new NWS alerts.
-        """
-        new_alert_polygons = []
-        for alert_type in list(DEFAULT_ALERT_PROPERTIES.keys())[::-1]:
-            new_alert_polygons.extend([dict(
-                coordinates=alert.geometry['coordinates'],
-                fill_color=DEFAULT_ALERT_PROPERTIES[alert.alert_type][1],
-                border_color=DEFAULT_ALERT_PROPERTIES[alert.alert_type][1],
-                border_width=2,
-                name=alert.alert_type,
-                data=alert)
-                for alert in self.alerts.alerts_with_geometry
-                if alert.alert_type == alert_type
-                and alert.alert_id in self.alerts.new_alert_ids])
-        
-        for polygon in new_alert_polygons:
-            self.draw_alert_polygon(**polygon)
-    
-    def _remove_old_alert_polygons(self) -> None:
-        """
-        Remove polygons for NWS alerts that are no longer active.
-        """
-        polygons = [p for p in self.canvas_polygon_list() if hasattr(p.data, 'alert_id')]
-        polygons_to_remove = [p for p in polygons if p.data.alert_id in self.alerts.old_alert_ids]
-        for polygon in polygons_to_remove:
-            polygon.delete()
     
     def canvas_polygon_list(self) -> list[tkmap.map_widget.CanvasPolygon]:
         """

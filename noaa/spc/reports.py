@@ -63,7 +63,7 @@ class SPCReport:
 
 class SPCReports:
     """
-    Class that handles the thread for updating SPC alerts on the dashboard.
+    Class that handles the thread for updating SPC reports on the dashboard.
     """
     def __init__(self, map_widget) -> None:
         """
@@ -103,6 +103,7 @@ class SPCReports:
         """
         Performs a single update of today's storm reports.
         """
+        sys.stdout.write('[SPCReports] Updating reports.')
         self._retrieve_reports()
         
         if len(self.new_report_ids) > 0:
@@ -118,9 +119,9 @@ class SPCReports:
         
         Parameters
         ----------
-        update_freq: int (default = 60)
+        update_freq: int
             Report update frequency in seconds.
-        max_updates: int (default = 1440)
+        max_updates: int
             Max number of times that the SPC reports will automatically update before terminating. This parameter is
             only used to prevent an infinite loop when updating reports.
 
@@ -133,6 +134,7 @@ class SPCReports:
         while update_count < max_updates:
             self.update_reports()
             time.sleep(update_freq)
+            update_count += 1
     
     def _draw_new_spc_reports(self) -> None:
         """
