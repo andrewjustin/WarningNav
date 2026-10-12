@@ -53,9 +53,9 @@ class SPCOutlook:
         sys.stdout.write(f'Retrieving outlooks from {self.url}')
         content = requests.get(self.url).content
         features = json.loads(content)['features']
-        
+
         self.dashboard.destroy_all_outlook_polygons()
-        
+
         for feature in features:
 
             label = feature['properties']['LABEL']
@@ -80,7 +80,7 @@ class SPCOutlook:
                                       stroke,
                                       fill)
                 sys.stdout.write(f'Drawing {label} outlook polygon.')
-                
+
                 p.draw()
                 self.dashboard.map_widget.canvas_polygon_list.append(p)
                 self.dashboard.map_widget.canvas.itemconfig(p.canvas_polygon, state='disabled')

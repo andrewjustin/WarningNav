@@ -16,7 +16,7 @@ class HelpMenu(tk.Menu):
         self.dashboard = dashboard
         self._add_debug_cascade()
         self._add_draw_test_polygon_cascade()
-        
+
     def _add_debug_cascade(self):
         """
         Internal method that adds a debug cascade to the help menu.
@@ -25,7 +25,7 @@ class HelpMenu(tk.Menu):
         self.debug_menu = tk.Menu(self, tearoff=False)
         self.debug_menu.add_command(label="Show Debug Log", command=lambda: self.dashboard.debug_log.master.deiconify())
         self.add_cascade(label="Debug", menu=self.debug_menu)
-        
+
     def _add_draw_test_polygon_cascade(self):
         """
         Adds a cascade to the debug cascade with options to draw test polygons.
@@ -102,7 +102,7 @@ class HelpMenu(tk.Menu):
                            alert_type: str):
         """
         Draw a single alert polygon.
-        
+
         alert_type: str
             Name of the alert type.
         """
@@ -114,7 +114,7 @@ class HelpMenu(tk.Menu):
             'name': alert_type,
         }
         sys.stdout.write(f'TEST POLYGON {test_polygon_data}')
-        
+
         self.dashboard.draw_alert_polygon(
             **test_polygon_data,
             data=test_polygon_data)

@@ -23,20 +23,19 @@ from menu.windows import WindowsMenu
 from menu.help import HelpMenu
 from noaa.nws.alerts import NWSAlerts
 from noaa.spc.reports import SPCReports
-from tkvideo import tkvideo
 from widgets.debug import DebugLog
 import customtkinter as ctk
 import os
 import pyautogui
 import random
 import sys
-import time
 import tkinter as tk
 import tkintermapview as tkmap
+from widgets.alerts import AlertsWindowWidget
 
 
 class AlertDashboard(ctk.CTk):
-    
+
     def __init__(self):
         super().__init__()
 
@@ -50,16 +49,8 @@ class AlertDashboard(ctk.CTk):
 
         self.option_add('*Text.Font', 'Helvetica 11')
         self.option_add('*Menu.Font', 'Helvetica 11')
-        
+
         self.bind('<B1-Motion>', self._map_motion)
-
-        self.debug_log = DebugLog(self)  # initialize the debug log
-
-        ### reroute all stdout and stderr printouts to the debug log ###
-        self.debug_logger_out = DebugLogger(self.debug_log, 'stdout')
-        self.debug_logger_err = DebugLogger(self.debug_log, 'stderr')
-        sys.stdout = self.debug_logger_out
-        sys.stderr = self.debug_logger_err
 
         ######################################### general map widget settings ##########################################
 
@@ -86,44 +77,56 @@ class AlertDashboard(ctk.CTk):
         self.map_widget.max_zoom = 12  # prevents zooming in too far where there are no offline tiles
         self.map_widget.min_zoom = 6  # prevents zooming out beyond CONUS coverage
         self._define_map_bounds()
-        
+
         self.bind('<Configure>', lambda event: self.on_resize(event))  # forces the map to stay centered in the window
         self.map_widget.bind('<Configure>')  # overwrite default map behavior for window resizing
         self.map_widget.pack_propagate(False)
 
         #################################################### menubar ###################################################
-        
+
         menubar = tk.Menu(self)
         self.config(menu=menubar)
-        
+
         menubar.add_cascade(label='File', menu=FileMenu(self))
         menubar.add_cascade(label='GIS', menu=GISMenu(self))
         menubar.add_cascade(label='Windows', menu=WindowsMenu(self))
         menubar.add_cascade(label='Help', menu=HelpMenu(self))
-        
+
         ################################################################################################################
-        
+
         # system settings
         ctk.deactivate_automatic_dpi_awareness()
         ctk.set_appearance_mode('system')
         ctk.set_widget_scaling(1)
         ctk.set_window_scaling(1)
-        
+
         # NWS alerts
-        self.alerts = NWSAlerts(self.map_widget)
+        self.alerts = NWSAlerts(self)
         self.alerts.start_thread()
-        
+
         # SPC storm reports
         self.spc_reports = SPCReports(self.map_widget)
         self.spc_reports.start_thread()
 
+        # initialize alerts window
+        self.alerts_widget = AlertsWindowWidget(self)
+        self.alerts_widget.geometry('1000x500')
+
+        self.debug_log = DebugLog(self)  # initialize the debug log
+
+        ### reroute all stdout and stderr printouts to the debug log ###
+        self.debug_logger_out = DebugLogger(self.debug_log, 'stdout')
+        self.debug_logger_err = DebugLogger(self.debug_log, 'stderr')
+        sys.stdout = self.debug_logger_out
+        sys.stderr = self.debug_logger_err
+
         self.mainloop()
-    
+
     def _define_map_bounds(self):
         """
         Internal method that defines the bounds of the map based on the current zoom.
         """
-        
+
         # {zoom: [left (x), top (y), right (x), bottom (y)]
         self.center_positions = {6: [-101.25, 41.688, -84.371, 31.355],
                                  7: [-112.504, 45.42, -75.937, 28.666],
@@ -132,7 +135,7 @@ class AlertDashboard(ctk.CTk):
                                  10: [-123.047, 48.774, -68.200, 25.052],
                                  11: [-123.926, 49.079, -67.5, 24.95],
                                  12: [-124.365, 49.231, -67.235, 24.818]}
-    
+
     def on_resize(self,
                   event: tk.Event,
                   tolerance_x: int = 50,
@@ -142,7 +145,7 @@ class AlertDashboard(ctk.CTk):
         Called whenever the main window is resized or moved.
         This method keeps the map centered in the window.
         'Tolerance' arguments prevent the map from updating constantly, reducing computational overhead.
-        
+
         Parameters
         ----------
         event: tk.Event
@@ -155,7 +158,7 @@ class AlertDashboard(ctk.CTk):
         if self.map_widget.zoom < self.map_widget.min_zoom:
             self.map_widget.set_zoom(self.map_widget.min_zoom)
             self.map_widget.update()
-        
+
         window_width = event.width
         window_height = event.height
         map_width = self.map_widget.winfo_width()
@@ -174,11 +177,11 @@ class AlertDashboard(ctk.CTk):
         for polygon in outlook_polygons:
             polygon.delete()
         sys.stdout.write(f'Removed {len(outlook_polygons)} outlook polygons')
-    
+
     def _map_motion(self, event: tk.Event) -> None:
         """
         Method that is called whenever the map is moved.
-        
+
         Parameters
         ----------
         event: tk.Event
@@ -189,21 +192,21 @@ class AlertDashboard(ctk.CTk):
         zoom = int(self.map_widget.zoom)
         if zoom < self.map_widget.min_zoom:
             self.map_widget.set_zoom(self.map_widget.min_zoom)
-        
+
         y, x = self.map_widget.get_position()
-        
+
         left, top, right, bottom = self.center_positions[zoom]
-        
+
         if x < left:
             self.map_widget.set_position(y, left)
         elif x > right:
             self.map_widget.set_position(y, right)
-        
+
         if y > top:
             self.map_widget.set_position(top, x)
         elif y < bottom:
             self.map_widget.set_position(bottom, x)
-    
+
     def canvas_polygon_list(self) -> list[tkmap.map_widget.CanvasPolygon]:
         """
         Returns a list of all polygons currently shown on the map.
@@ -218,7 +221,7 @@ def start_application():
 
 
 if __name__ == '__main__':
-    
+
     # loading_screen_root = tk.Tk()
     # loading_screen_root.title('WarningNav')
     #

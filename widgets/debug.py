@@ -1,21 +1,20 @@
-import sys
 import tkinter as tk
+from widgets.widget import Widget
 from debug.menu import DebugFileMenu
 
 
-class DebugLogWidget(tk.Toplevel):
-    
+class DebugLogWidget(Widget):
+
     def __init__(self, dashboard):
         """
         dashboard: main.AlertDashboard instance
         """
-        super().__init__(master=dashboard)
-        self.withdraw()
+        super().__init__(dashboard=dashboard)
         self.title("Debug Log")
         self.iconbitmap("warningnav.ico")
         self.attributes('-topmost', True)  # forces debug window to stay on top
         self._add_menubar()
-    
+
     def _add_menubar(self) -> None:
         """
         Internal method that creates a menubar.
@@ -24,15 +23,9 @@ class DebugLogWidget(tk.Toplevel):
         self.config(menu=menubar)
         menubar.add_cascade(label="File", menu=DebugFileMenu(self))
 
-    def destroy(self) -> None:
-        """
-        When closing the window, prevent the instance from being 'destroyed'.
-        """
-        self.withdraw()
-
 
 class DebugLog(tk.Text):
-    
+
     def __init__(self, dashboard):
         """
         dashboard: main.AlertDashboard instance

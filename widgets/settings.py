@@ -6,6 +6,7 @@ import tkinter as tk
 from tkinter import ttk
 import pyautogui
 
+
 class SettingsWidget(tk.Tk):
 
     def __init__(self, dashboard):
@@ -15,11 +16,6 @@ class SettingsWidget(tk.Tk):
         sys.stdout.write('Opening settings widget...')
 
         super().__init__(master=dashboard)
-
-        screenwidth = self.winfo_screenwidth()
-        screenheight = self.winfo_screenheight()
-        width = self.winfo_width()
-        height = self.winfo_height()
 
         self.iconbitmap('warningnav.ico')
         self.title('Settings')

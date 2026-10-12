@@ -13,7 +13,7 @@ import tkinter as tk
 
 
 class RealtimeClockWidget(tk.Label):
-    
+
     def __init__(self,
                  frame: tk.Frame,
                  side: Literal['left', 'right'] = 'left',
@@ -29,11 +29,11 @@ class RealtimeClockWidget(tk.Label):
         self.timezone = ZoneInfo("America/Chicago")
         self.config(**kwargs)
         self.pack(side=side, fill=fill)
-    
+
     def start(self, multithreading: bool = False):
         """
         Method that must be called to start the clock.
-        
+
         multithreading: bool (default = False)
             Run the clock widget on its own thread.
         """

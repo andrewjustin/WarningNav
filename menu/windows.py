@@ -10,4 +10,4 @@ class WindowsMenu(tk.Menu):
         dashboard: main.AlertDashboard instance
         """
         super().__init__(master=dashboard, tearoff=False)
-        self.add_command(label="Show Warnings Window")
+        self.add_command(label="Show Warnings Window", command=lambda: dashboard.alerts_widget.show())
